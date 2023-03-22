@@ -36,6 +36,15 @@ def checka_ut():
             text.insert(tk.END, f"Gästen {namn} har checkat ut från rum {rumnummer}.\n")
         else:
             text.insert(tk.END, "Tyvärr, rummet är redan ledigt\n")
+            
+def uppdatera_rumsstatus():
+    for rumnummer, info in rum.items():
+        if info["ledigt"]:
+            text.tag_add("ledigt", f"{rumnummer}.0", f"{rumnummer}.end")
+            text.tag_remove("upptaget", f"{rumnummer}.0", f"{rumnummer}.end")
+        else:
+            text.tag_add("upptaget", f"{rumnummer}.0", f"{rumnummer}.end")
+            text.tag_remove("ledigt", f"{rumnummer}.0", f"{rumnummer}.end")
 
 # Skapa GUI-element
 text = tk.Text(root)
@@ -65,3 +74,5 @@ rum = {
     102: {"typ": "dubbelrum", "ledigt": False},
     103: {"typ": "svit", "ledigt": True},
 }
+
+root.mainloop()
