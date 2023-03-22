@@ -1,0 +1,67 @@
+import tkinter as tk
+
+# Skapa ett Tkinter-fönster
+root = tk.Tk()
+root.title("Hotellbokning")
+
+# Funktion för att visa tillgängliga rum
+def visa_tillgangliga_rum():
+    text.delete("1.0", tk.END)  # Rensa textområdet
+    text.insert(tk.END, "Tillgängliga rum:\n")
+    for r, info in rum.items():
+        if info["ledigt"]:
+            text.insert(tk.END, f"Rum {r} - {info['typ']}\n")
+
+# Funktion för att checka in en gäst
+def checka_in():
+    visa_tillgangliga_rum()
+    rumnummer = int(rumnummer_entry.get())
+    if rumnummer in rum:
+        if rum[rumnummer]["ledigt"]:
+            namn = namn_entry.get()
+            antal_personer = int(antal_personer_entry.get())
+            rum[rumnummer]["ledigt"] = False
+            text.insert(tk.END, f"Gästen {namn} har checkat in på rum {rumnummer}.\n")
+        else:
+            text.insert(tk.END, "Tyvärr, rummet är inte ledigt\n")
+
+def checka_ut():
+    visa_tillgangliga_rum()
+    rumnummer = int(rumnummer_entry.get()) # Uppdaterat namnet på entry-objektet
+    if rumnummer in rum:
+        if not rum[rumnummer]["ledigt"]:
+            namn = namn_entry.get() # Uppdaterat namnet på entry-objektet
+            antal_personer = int(antal_personer_entry.get()) # Uppdaterat namnet på entry-objektet
+            rum[rumnummer]["ledigt"] = True
+            text.insert(tk.END, f"Gästen {namn} har checkat ut från rum {rumnummer}.\n")
+        else:
+            text.insert(tk.END, "Tyvärr, rummet är redan ledigt\n")
+
+# Skapa GUI-element
+text = tk.Text(root)
+rumnummer_label = tk.Label(root, text="Rumnummer:")
+rumnummer_entry = tk.Entry(root)
+namn_label = tk.Label(root, text="Namn:")
+namn_entry = tk.Entry(root)
+antal_personer_label = tk.Label(root, text="Antal personer:")
+antal_personer_entry = tk.Entry(root)
+checka_in_button = tk.Button(root, text="Checka in", command=checka_in)
+checka_ut_button = tk.Button(root, text="Checka ut", command=checka_ut)
+
+# Packa GUI-elementen
+text.pack()
+rumnummer_label.pack()
+rumnummer_entry.pack()
+namn_label.pack()
+namn_entry.pack()
+antal_personer_label.pack()
+antal_personer_entry.pack()
+checka_in_button.pack()
+checka_ut_button.pack()
+
+# Testdata - rum
+rum = {
+    101: {"typ": "enkelrum", "ledigt": True},
+    102: {"typ": "dubbelrum", "ledigt": False},
+    103: {"typ": "svit", "ledigt": True},
+}
