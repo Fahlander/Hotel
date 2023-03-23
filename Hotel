@@ -4,13 +4,19 @@ import tkinter as tk
 root = tk.Tk()
 root.title("Hotellbokning")
 
-# Funktion för att visa tillgängliga rum
-def visa_tillgangliga_rum():
-    text.delete("1.0", tk.END)  # Rensa textområdet
-    text.insert(tk.END, "Tillgängliga rum:\n")
-    for r, info in rum.items():
-        if info["ledigt"]:
-            text.insert(tk.END, f"Rum {r} - {info['typ']}\n")
+rum = {
+    101: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
+    102: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
+    103: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
+    104: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
+    201: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
+    202: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
+    203: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
+    204: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
+    301: {"typ": "svit", "ledigt": True, "max_gaster": 4},
+    302: {"typ": "svit", "ledigt": True, "max_gaster": 4},
+    303: {"typ": "svit", "ledigt": True, "max_gaster": 4},
+}
 
 # Funktion för att checka in en gäst
 def checka_in():
@@ -20,10 +26,20 @@ def checka_in():
         if rum[rumnummer]["ledigt"]:
             namn = namn_entry.get()
             antal_personer = int(antal_personer_entry.get())
-            rum[rumnummer]["ledigt"] = False
-            text.insert(tk.END, f"Gästen {namn} har checkat in på rum {rumnummer}.\n")
+            max_gaster = rum[rumnummer]["max_gaster"]
+            if antal_personer > max_gaster:
+                text.insert(tk.END, f"Tyvärr, rum {rumnummer} kan inte ta emot fler än {max_gaster} gäster\n")
+            else:
+                rum[rumnummer]["ledigt"] = False
+                text.insert(tk.END, f"Gästen {namn} har checkat in på rum {rumnummer}.\n")
+                uppdatera_rumsstatus()
+                rumnummer_entry.delete(0, tk.END)
+                namn_entry.delete(0, tk.END)
+                antal_personer_entry.delete(0, tk.END)
+
         else:
             text.insert(tk.END, "Tyvärr, rummet är inte ledigt\n")
+            
 
 def checka_ut():
     visa_tillgangliga_rum()
@@ -34,6 +50,11 @@ def checka_ut():
             antal_personer = int(antal_personer_entry.get()) # Uppdaterat namnet på entry-objektet
             rum[rumnummer]["ledigt"] = True
             text.insert(tk.END, f"Gästen {namn} har checkat ut från rum {rumnummer}.\n")
+            uppdatera_rumsstatus()
+            rumnummer_entry.delete(0, tk.END)
+            namn_entry.delete(0, tk.END)
+            antal_personer_entry.delete(0, tk.END)
+
         else:
             text.insert(tk.END, "Tyvärr, rummet är redan ledigt\n")
             
@@ -45,9 +66,12 @@ def uppdatera_rumsstatus():
         else:
             text.tag_add("upptaget", f"{rumnummer}.0", f"{rumnummer}.end")
             text.tag_remove("ledigt", f"{rumnummer}.0", f"{rumnummer}.end")
+            
 
 # Skapa GUI-element
 text = tk.Text(root)
+text.tag_configure("ledigt", background="green")
+text.tag_configure("upptaget", background="red")
 rumnummer_label = tk.Label(root, text="Rumnummer:")
 rumnummer_entry = tk.Entry(root)
 namn_label = tk.Label(root, text="Namn:")
@@ -68,11 +92,15 @@ antal_personer_entry.pack()
 checka_in_button.pack()
 checka_ut_button.pack()
 
-# Testdata - rum
-rum = {
-    101: {"typ": "enkelrum", "ledigt": True},
-    102: {"typ": "dubbelrum", "ledigt": False},
-    103: {"typ": "svit", "ledigt": True},
-}
+# Funktion för att visa tillgängliga rum
+def visa_tillgangliga_rum():
+    text.delete("1.0", tk.END)  # Rensa textområdet
+    text.insert(tk.END, "Tillgängliga rum:\n")
+    for r, info in rum.items():
+        if info["ledigt"]:
+            text.insert(tk.END, f"Rum {r} - {info['typ']} - Max gäster: {info['max_gaster']}\n", "ledigt")
+        else:
+            text.insert(tk.END, f"Rum {r} - {info['typ']} - Max gäster: {info['max_gaster']}\n", "upptaget")
+
 
 root.mainloop()
