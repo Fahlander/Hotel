@@ -5,21 +5,26 @@ root = tk.Tk()
 root.title("Hotellbokning")
 
 rum = {
-    101: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
-    102: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
-    103: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
-    104: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1},
-    201: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
-    202: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
-    203: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
-    204: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2},
-    301: {"typ": "svit", "ledigt": True, "max_gaster": 4},
-    302: {"typ": "svit", "ledigt": True, "max_gaster": 4},
-    303: {"typ": "svit", "ledigt": True, "max_gaster": 4},
+    101: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1, "bokad_i_dagar": 0},
+    102: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1, "bokad_i_dagar": 0},
+    103: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1, "bokad_i_dagar": 0},
+    104: {"typ": "enkelrum", "ledigt": True, "max_gaster": 1, "bokad_i_dagar": 0},
+    201: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2, "bokad_i_dagar": 0},
+    202: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2, "bokad_i_dagar": 0},
+    203: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2, "bokad_i_dagar": 0},
+    204: {"typ": "dubbelrum", "ledigt": True, "max_gaster": 2, "bokad_i_dagar": 0},
+    301: {"typ": "svit", "ledigt": True, "max_gaster": 4, "bokad_i_dagar": 0},
+    302: {"typ": "svit", "ledigt": True, "max_gaster": 4, "bokad_i_dagar": 0},
+    303: {"typ": "svit", "ledigt": True, "max_gaster": 4, "bokad_i_dagar": 0},
 }
 
 # Funktion för att checka in en gäst
-def checka_in():
+def uppdatera_bokningar():
+    for rumnummer, info in rum.items():
+        if not info["ledigt"]:
+            info["bokad_i_dagar"] += 1
+
+def checka_in_med_dagar():
     visa_tillgangliga_rum()
     rumnummer = int(rumnummer_entry.get())
     if rumnummer in rum:
@@ -27,16 +32,18 @@ def checka_in():
             namn = namn_entry.get()
             antal_personer = int(antal_personer_entry.get())
             max_gaster = rum[rumnummer]["max_gaster"]
+            antal_dagar = int(dagar_entry.get())
             if antal_personer > max_gaster:
                 text.insert(tk.END, f"Tyvärr, rum {rumnummer} kan inte ta emot fler än {max_gaster} gäster\n")
             else:
                 rum[rumnummer]["ledigt"] = False
-                text.insert(tk.END, f"Gästen {namn} har checkat in på rum {rumnummer}.\n")
+                text.insert(tk.END, f"Gästen {namn} har checkat in på rum {rumnummer} för {antal_dagar} dagar.\n")
+                uppdatera_bokningar()  # Uppdatera antalet bokade dagar här
                 uppdatera_rumsstatus()
                 rumnummer_entry.delete(0, tk.END)
                 namn_entry.delete(0, tk.END)
                 antal_personer_entry.delete(0, tk.END)
-
+                dagar_entry.delete(0, tk.END)
         else:
             text.insert(tk.END, "Tyvärr, rummet är inte ledigt\n")
             
@@ -60,37 +67,54 @@ def checka_ut():
             
 def uppdatera_rumsstatus():
     for rumnummer, info in rum.items():
+        text.insert(tk.END, f" - Bokad i {info['bokad_i_dagar']} dagar\n")
         if info["ledigt"]:
             text.tag_add("ledigt", f"{rumnummer}.0", f"{rumnummer}.end")
             text.tag_remove("upptaget", f"{rumnummer}.0", f"{rumnummer}.end")
         else:
             text.tag_add("upptaget", f"{rumnummer}.0", f"{rumnummer}.end")
             text.tag_remove("ledigt", f"{rumnummer}.0", f"{rumnummer}.end")
+
+def visa_bokningar():
+    bokning_text.delete(1.0, tk.END) # Rensa text widget
+    for rumnummer, info in rum.items():
+        if not info["ledigt"]:
+            bokning_text.insert(tk.END, f"Rum {rumnummer} är bokat av {info['namn']} i {info['bokad_i_dagar']} dagar.\n")
             
 
 # Skapa GUI-element
 text = tk.Text(root)
 text.tag_configure("ledigt", background="green")
 text.tag_configure("upptaget", background="red")
+bokning_text = tk.Text(root, height=10)
+bokning_text.pack()
+btn_bokning = tk.Button(root, text="Visa bokningar", command=visa_bokningar)
+btn_bokning.pack()
 rumnummer_label = tk.Label(root, text="Rumnummer:")
 rumnummer_entry = tk.Entry(root)
 namn_label = tk.Label(root, text="Namn:")
 namn_entry = tk.Entry(root)
 antal_personer_label = tk.Label(root, text="Antal personer:")
 antal_personer_entry = tk.Entry(root)
-checka_in_button = tk.Button(root, text="Checka in", command=checka_in)
+dagar_label = tk.Label(root, text="Antal dagar:")
+dagar_entry = tk.Entry(root)
+max_dagar_label = tk.Label(root, text="Max antal dagar:")
+bokad_dagar_label = tk.Label(root, text="Bokad i dagar:")
+checka_in_button = tk.Button(root, text="Checka in", command=checka_in_med_dagar)
 checka_ut_button = tk.Button(root, text="Checka ut", command=checka_ut)
+rumnummer_label.grid(row=0, column=0, padx=5, pady=5)
+rumnummer_entry.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+namn_label.grid(row=1, column=0, padx=5, pady=5)
+namn_entry.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+antal_personer_label.grid(row=2, column=0, padx=5, pady=5)
+antal_personer_entry.grid(row=2, column=1, padx=5, pady=5, sticky="nsew")
+dagar_label.grid(row=3, column=0, padx=5, pady=5)
+dagar_entry.grid(row=3, column=1, padx=5, pady=5, sticky="nsew")
+checka_in_button.grid(row=4, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
+checka_ut_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
+text.grid(row=7, column=0, columnspan=2, padx=5, pady=5, sticky="nsew")
 
-# Packa GUI-elementen
-text.pack()
-rumnummer_label.pack()
-rumnummer_entry.pack()
-namn_label.pack()
-namn_entry.pack()
-antal_personer_label.pack()
-antal_personer_entry.pack()
-checka_in_button.pack()
-checka_ut_button.pack()
+
 
 # Funktion för att visa tillgängliga rum
 def visa_tillgangliga_rum():
